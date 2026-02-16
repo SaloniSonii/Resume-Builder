@@ -5,6 +5,12 @@ import { ArrowLeftIcon, Briefcase, ChevronLeft, ChevronRight, FileText, FolderIc
 import PersonalInfoForm from '../components/PersonalInfoForm'
 import ResumePreview from '../components/ResumePreview'
 import TemplateSelector from '../components/TemplateSelector'
+import ColorPicker from '../components/ColorPicker'
+import ProfessionalSummaryForm from '../components/ProfessionalSummaryForm'
+import ExperienceForm from '../components/ExperienceForm'
+import EducationForm from '../components/EducationForm'
+import ProjectForm from '../components/ProjectForm'
+import SkillsForm from '../components/SkillsForm'
 
 const ResumeBuilder = () => {
 
@@ -15,9 +21,9 @@ const ResumeBuilder = () => {
     title: '',
     personal_info: {},
     professional_summary: "",
-    experince:[],
+    experience:[],
     education:[],
-    project:[],
+    projects:[],
     skills:[],
     template:"classic",
     accent_color: "#3B82F6",
@@ -80,6 +86,7 @@ const sections = [
               <div className='flex justify-between items-center mb-6 border-b border-gray-300 py-1'>
                 <div className='flex items-center gap-2'>
                   <TemplateSelector selectedTemplate={resumeData.template} onChange={(template) => setResumeData(prev => ({...prev, template: template}))}/>
+                    <ColorPicker selectedColor={resumeData.accent_color} onChange={(color) => setResumeData(prev => ({...prev, accent_color: color}))}/>
 
                 </div>
 
@@ -105,6 +112,24 @@ const sections = [
                 <div className='space-y-6'>
                   {activeSection.id === 'personal' && (
                     <PersonalInfoForm data={resumeData.personal_info} onChange = {(data) =>setResumeData(prev => ({...prev, personal_info:data}))} removeBackground={removeBackground} setRemoveBackground={setRemoveBackground}/>
+                  )}
+
+                  {activeSection.id === 'summary' && (
+                    <ProfessionalSummaryForm data={resumeData.professional_summary} onChange = {(data) =>setResumeData(prev => ({...prev, professional_summary:data}))} setResumeData={setResumeData}/>
+                  )}
+                  {activeSection.id === 'experience' && (
+                    <ExperienceForm data={resumeData.experience} onChange = {(data) =>setResumeData(prev => ({...prev, experience:data}))} />
+                  )}
+                  {activeSection.id === 'education' && (
+                    <EducationForm data={resumeData.education} onChange = {(data) =>setResumeData(prev => ({...prev, education:data}))} />
+                  )}
+
+                    {activeSection.id === 'projects' && (
+                    <ProjectForm data={resumeData.projects} onChange = {(data) =>setResumeData(prev => ({...prev, projects:data}))} />
+                  )}
+
+                    {activeSection.id === 'skills' && (
+                    <SkillsForm data={resumeData.skills} onChange = {(data) =>setResumeData(prev => ({...prev, skills:data}))} />
                   )}
 
               </div>
