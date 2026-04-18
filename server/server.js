@@ -23,3 +23,14 @@ app.use('/api/ai', aiRouter)
 app.listen(PORT,()=>{
     console.log(`Server is runing on port ${PORT}`);
 });
+
+
+
+
+
+
+
+
+
+
+//https://resume-builder-frontend-8tym.onrender.com
