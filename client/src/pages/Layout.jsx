@@ -23,8 +23,6 @@ const Layout = () => {
           : <Login />
       }
 
-
-
     </div>
   )
 }

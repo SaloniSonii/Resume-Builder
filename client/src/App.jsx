@@ -22,7 +22,7 @@ const App = () => {
       if(token){
         const {data} = await api.get('/api/users/data',{headers:{Authorization:token}})
         if(data.user){
-          dispatch(login({token,user:data.user}))
+          dispatch(login({token, user: data.user}))
         }
         dispatch(setLoading(false))
       }

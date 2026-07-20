@@ -26,10 +26,10 @@ const Login = () => {
             const {data} = await api.post(`/api/users/${state}`,formData)
             dispatch(login(data))
             localStorage.setItem('token', data.token)
-            toast.success()
+            toast.success(data.message)
             
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message)
+            toast(error?.response?.data?.message || error.message)
             
         }
 

@@ -12,19 +12,45 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 const extractTextFromPdf = async (file) => {
   const fileBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: fileBuffer }).promise
-  let extractedText = ''
+  const pages = []
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
     const page = await pdf.getPage(pageNumber)
     const textContent = await page.getTextContent()
-    const pageText = textContent.items
-      .map((item) => ('str' in item ? item.str : ''))
-      .join(' ')
+    const rows = []
 
-    extractedText += ` ${pageText}`
+    textContent.items.forEach((item) => {
+      if (!('str' in item) || !item.str?.trim()) {
+        return
+      }
+
+      const [, , , , x = 0, y = 0] = item.transform || []
+      const lastRow = rows[rows.length - 1]
+
+      if (!lastRow || Math.abs(lastRow.y - y) > 3) {
+        rows.push({ y, parts: [{ x, text: item.str.trim() }] })
+        return
+      }
+
+      lastRow.parts.push({ x, text: item.str.trim() })
+    })
+
+    const pageText = rows
+      .map((row) =>
+        row.parts
+          .sort((a, b) => a.x - b.x)
+          .map((part) => part.text)
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+      )
+      .filter(Boolean)
+      .join('\n')
+
+    pages.push(pageText)
   }
 
-  return extractedText.trim()
+  return pages.filter(Boolean).join('\n\n').trim()
 }
 
 const Dashboard = () => {
@@ -176,7 +202,7 @@ const Dashboard = () => {
             return (
               <button key={index} onClick={()=> navigate(`/app/builder/${resume._id}`)} className='relative w-full sm:max-w-36 h-48 flex flex-col items-center justify-center rounded-lg gap-2 border group hover:shadow-lg transition-all duration-300 cursor-pointer' style={{ background: `linear-gradient(135deg, ${baseColor}10, ${baseColor}40)`, borderColor: baseColor + '40' }}>
                 <FilePenLineIcon className="size-7 group-hover:scale-105 transition-all" style={{ color: baseColor }} />
-                <p className=''>{resume.title}</p>
+                <p title={resume.title} className='max-w-full px-2 text-center overflow-hidden text-ellipsis whitespace-nowrap'>{resume.title}</p>
                 <p className='absolute bottom-1 text-[11px] text-slate-400 group-hover:text-slate-500 transition-all duration-300 px-2 text-center'>Updated on {new Date(resume.updateAt).toLocaleDateString()}</p>
                 <div onClick={e=>e.stopPropagation()} className='absolute top-1 right-1 group-hover:flex items-center hidden'>
                   <TrashIcon onClick={()=>deleteResume(resume._id)} className="size-7 p-1.5 hover:bg-white/50 rounded text-slate-700 transition-colors" />

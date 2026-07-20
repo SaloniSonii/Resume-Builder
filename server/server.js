@@ -9,11 +9,13 @@ import aiRouter from "./routes/aiRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-//databse connection
+// databse connection
 await connectDB()
 
-app.use(express.json({ limit: "5mb" }))
+// app.use(express.json({ limit: "5mb" }))
+app.use(express.json())
 app.use(cors())
+
 
 app.get('/', (req,res) => res.send("Server is live..."))
 app.use('/api/users', userRouter)
@@ -33,4 +35,4 @@ app.listen(PORT,()=>{
 
 
 
-//https://resume-builder-frontend-8tym.onrender.com
+// //https://resume-builder-frontend-8tym.onrender.com

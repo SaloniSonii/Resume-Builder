@@ -5,4 +5,4 @@ const ai = new OpenAI({
     baseURL: process.env.OPENAI_BASE_URL,
 });
 
-export default ai
+export default ai  
