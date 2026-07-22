@@ -40,19 +40,21 @@ const ResumeBuilder = () => {
    try {
     const {data} = await api.get('/api/resumes/get/' + resumeId, {headers: { Authorization: token}})
     if(data.resume){
-      setResumeData({
-        ...data.resume,
-        project: Array.isArray(data.resume.project)
-          ? data.resume.project
-          : Array.isArray(data.resume.projects)
-            ? data.resume.projects
-            : [],
-      })
+      // setResumeData({
+      //   ...data.resume,
+      //   project: Array.isArray(data.resume.project)
+      //     ? data.resume.project
+      //     : Array.isArray(data.resume.projects)
+      //       ? data.resume.projects
+      //       : [],
+      // })
+      setResumeData(data.resume)
       document.title = data.resume.title;
     }
     
    } catch (error) {
-    toast.error(error?.response?.data?.message || error.message)
+    // toast.error(error?.response?.data?.message || error.message)
+    console.log(error.message)
     
    }
   }
