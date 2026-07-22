@@ -4,68 +4,66 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import toast from 'react-hot-toast'
 import api from '../configs/api'
-import * as pdfjsLib from 'pdfjs-dist'
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+// import * as pdfjsLib from 'pdfjs-dist'
+// import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+import pdfToText from 'react-pdftotext'
+//pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 
-const extractTextFromPdf = async (file) => {
-  const fileBuffer = await file.arrayBuffer()
-  const pdf = await pdfjsLib.getDocument({ data: fileBuffer }).promise
-  const pages = []
+// const extractTextFromPdf = async (file) => {
+//   const fileBuffer = await file.arrayBuffer()
+//   const pdf = await pdfjsLib.getDocument({ data: fileBuffer }).promise
+//   const pages = []
 
-  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-    const page = await pdf.getPage(pageNumber)
-    const textContent = await page.getTextContent()
-    const rows = []
+//   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+//     const page = await pdf.getPage(pageNumber)
+//     const textContent = await page.getTextContent()
+//     const rows = []
 
-    textContent.items.forEach((item) => {
-      if (!('str' in item) || !item.str?.trim()) {
-        return
-      }
+//     textContent.items.forEach((item) => {
+//       if (!('str' in item) || !item.str?.trim()) {
+//         return
+//       }
 
-      const [, , , , x = 0, y = 0] = item.transform || []
-      const lastRow = rows[rows.length - 1]
+//       const [, , , , x = 0, y = 0] = item.transform || []
+//       const lastRow = rows[rows.length - 1]
 
-      if (!lastRow || Math.abs(lastRow.y - y) > 3) {
-        rows.push({ y, parts: [{ x, text: item.str.trim() }] })
-        return
-      }
+//       if (!lastRow || Math.abs(lastRow.y - y) > 3) {
+//         rows.push({ y, parts: [{ x, text: item.str.trim() }] })
+//         return
+//       }
 
-      lastRow.parts.push({ x, text: item.str.trim() })
-    })
+//       lastRow.parts.push({ x, text: item.str.trim() })
+//     })
 
-    const pageText = rows
-      .map((row) =>
-        row.parts
-          .sort((a, b) => a.x - b.x)
-          .map((part) => part.text)
-          .join(' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-      )
-      .filter(Boolean)
-      .join('\n')
+//     const pageText = rows
+//       .map((row) =>
+//         row.parts
+//           .sort((a, b) => a.x - b.x)
+//           .map((part) => part.text)
+//           .join(' ')
+//           .replace(/\s+/g, ' ')
+//           .trim()
+//       )
+//       .filter(Boolean)
+//       .join('\n')
 
-    pages.push(pageText)
-  }
+//     pages.push(pageText)
+//   }
 
-  return pages.filter(Boolean).join('\n\n').trim()
-}
+//   return pages.filter(Boolean).join('\n\n').trim()
+// }
 
 const Dashboard = () => {
 
-  const {token} = useSelector(state => state.auth)
+  const {user, token} = useSelector(state => state.auth)
 
 
 
   const colors = ["#9333ea", "#d97706", "#dc2626", "#0284c7", "#16a34a"]
-
   const [allResumes, setAllResumes] = useState([])
   const [showCreateResume, setShowCreateResume] = useState(false)
-
   const [showUploadResume, setShowUploadResume] = useState(false)
-
   const [title, setTitle] = useState('')
    const [resume, setResume] = useState(null)
     const [editResumeId, setEditResumeId] = useState('')
@@ -105,21 +103,22 @@ const Dashboard = () => {
     event.preventDefault()
     setIsLoading(true)
     try {
-      if (!resume) {
-        toast.error('Please select a PDF resume first')
-        return
-      }
+      // if (!resume) {
+      //   toast.error('Please select a PDF resume first')
+      //   return
+      // }
       
-      const resumeText = await extractTextFromPdf(resume)
+      const resumeText = await pdfToText(resume)
 
-      if (!resumeText) {
-        throw new Error('Could not read any text from the PDF')
-      }
+      // if (!resumeText) {
+      //   throw new Error('Could not read any text from the PDF')
+      // }
 
        const {data} = await api.post(
         '/api/ai/upload-resume',
         { title, resumeText },
-        { headers: { Authorization: token, 'Content-Type': 'application/json' } }
+         { headers: { Authorization: token }} 
+        // //'Content-Type': 'application/json' } }
       )
        setTitle('')
        setResume(null)
@@ -129,9 +128,10 @@ const Dashboard = () => {
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message)
       
-    } finally {
+    } 
+    // finally {
       setIsLoading(false)
-    }
+    // }
   }
 
 
@@ -143,8 +143,6 @@ const Dashboard = () => {
       setTitle('')
         setEditResumeId('') 
       toast.success(data.message)
-
-    
       
     } catch (error) {
         toast.error(error?.response?.data?.message || error.message)

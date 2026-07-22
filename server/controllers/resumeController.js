@@ -130,7 +130,7 @@ export const updateResume = async (req, res)=>{
         // }
         
 
-        let resumeDataCopy = JSON.parse(resumeData)
+        let resumeDataCopy = JSON.parse(JSON.stringify(resumeData));
 
 
 
