@@ -117,23 +117,24 @@ export const updateResume = async (req, res)=>{
         const {resumeId, resumeData, removeBackground} = req.body
         const image = req.file;
 
-        // if (!resumeId || !resumeData) {
-        //     return res.status(400).json({message: 'Missing required fields'})
-        // }
+        console.log('updateResume req.body:', { resumeId, resumeData, removeBackground, file: !!image })
 
-        // let resumeDataCopy ;
-        // if(typeof resumeData === 'string'){
-        //     resumeDataCopy = JSON.parse(resumeData)
-        // }
-        // else{
-        //     resumeDataCopy = structuredClone(resumeData)
-        // }
-        
+        if (!resumeId || !resumeData) {
+            return res.status(400).json({message: 'Missing required fields'})
+        }
 
-        let resumeDataCopy = JSON.parse(JSON.stringify(resumeData));
-
-
-
+        let resumeDataCopy;
+        if (typeof resumeData === 'string') {
+            try {
+                resumeDataCopy = JSON.parse(resumeData)
+            } catch (parseError) {
+                return res.status(400).json({message: 'Invalid resumeData JSON'})
+            }
+        } else if (typeof resumeData === 'object' && resumeData !== null) {
+            resumeDataCopy = structuredClone(resumeData)
+        } else {
+            return res.status(400).json({message: 'Invalid resumeData format'})
+        }
 
         if(image){
 
@@ -148,13 +149,23 @@ export const updateResume = async (req, res)=>{
                 }
             });
 
+            resumeDataCopy.personal_info = resumeDataCopy.personal_info || {}
             resumeDataCopy.personal_info.image = response.url
 
         }
 
+        const sanitizedResumeData = { ...resumeDataCopy }
+        delete sanitizedResumeData._id
+        delete sanitizedResumeData.__v
+        delete sanitizedResumeData.userId
+        delete sanitizedResumeData.createdAt
+        delete sanitizedResumeData.updatedAt
+
+        console.log('sanitizedResumeData keys', Object.keys(sanitizedResumeData))
+
         const resume = await Resume.findOneAndUpdate(
             { userId, _id: resumeId },
-            resumeDataCopy,
+            sanitizedResumeData,
             { new: true }
         )
 
