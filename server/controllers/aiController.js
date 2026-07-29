@@ -14,7 +14,7 @@ export const enhanceProfessionalSummary = async (req, res) => {
         }
 
         const response = await ai.chat.completions.create({
-           model: "process.env.OPENAI_MODEL",
+           model: process.env.OPENAI_MODEL || "gpt-3.5-turbo",
     messages: [
         {   role: "system",
             content: "You are an expert in rsume writing. Your task is to enhance the professional summary of a resume. The summary should be 1-2 sentences also highlighting key skills, experience, and career objectives. Make it compelling and ATS-friendly, and only return text no options or anything else." 
@@ -48,7 +48,7 @@ export const enhanceJobDescription = async (req, res) => {
         }
 
         const response = await ai.chat.completions.create({
-           model: "process.env.OPENAI_MODEL",
+           model: process.env.OPENAI_MODEL || "gpt-3.5-turbo",
     messages: [
         {   role: "system",
             content: "You are an expert in rsume writing. Your task is to enhance the job description should be 1-2 sentences also highlighting key resposibilities and achievements. Use action verbs and quantifiable results where possible. Make it ATS-friendly, and only return text no options or anything else." 
@@ -89,47 +89,44 @@ export const uploadResume = async (req, res) => {
         Provide data in the following JSON format with no additional text before or after:
 
         {
-        professional_summary: {type:String, default: ''},
-    skills: [{type:String }],
-    personal_info: {
-        image:{type:String, default: ''},
-        full_name: {type:String, default: ''},
-        profession: {type:String, default: ''},
-        email: {type:String, default: ''},
-        phone:{type:String, default: ''},
-        location:{type:String, default: ''},
-        linkedin: {type:String, default: ''},
-        website: {type:String, default: ''},
-    },
-    experience:[
-        {
-            company: {type:String},
-            position: {type:String},
-            start_date: {type:String},
-            end_date: {type:String},
-            description: {type:String},
-            is_current: {type:String},
-            
-        }
-    ],
-    project: [
-        {
-            name: {type:String},
-            type: {type:String},
-            description: {type:String},
-  
-        }
-    ],
-     education:[
-        {
-            institution: {type:String},
-            degree: {type:String},
-            field: {type:String},
-            graduation_date: {type:String},
-            gpa: {type:String},
-           
-        }
-    ],
+            "professional_summary": "string",
+            "skills": ["string"],
+            "personal_info": {
+                "image": "string",
+                "full_name": "string",
+                "profession": "string",
+                "email": "string",
+                "phone": "string",
+                "location": "string",
+                "linkedin": "string",
+                "website": "string"
+            },
+            "experience": [
+                {
+                    "company": "string",
+                    "position": "string",
+                    "start_date": "string",
+                    "end_date": "string",
+                    "description": "string",
+                    "is_current": "string"
+                }
+            ],
+            "project": [
+                {
+                    "name": "string",
+                    "type": "string",
+                    "description": "string"
+                }
+            ],
+            "education": [
+                {
+                    "institution": "string",
+                    "degree": "string",
+                    "field": "string",
+                    "graduation_date": "string",
+                    "gpa": "string"
+                }
+            ]
         }
         
         
@@ -138,7 +135,7 @@ export const uploadResume = async (req, res) => {
 
 
         const response = await ai.chat.completions.create({
-           model: "process.env.OPENAI_MODEL",
+           model: process.env.OPENAI_MODEL || "gpt-3.5-turbo",
     messages: [
         {   role: "system",
             content: systemPrompt 
@@ -151,8 +148,14 @@ export const uploadResume = async (req, res) => {
     response_format: {type: 'json_object'}
         })
 
-        const extractedData =response.choices[0].message.content;
-        const parsedData = JSON.parse(extractedData)
+        let extractedData = response.choices[0].message.content;
+        
+        // Strip markdown backticks if they exist
+        if (extractedData.startsWith('```')) {
+            extractedData = extractedData.replace(/^```(json)?\\s*/, '').replace(/\\s*```$/, '');
+        }
+        
+        const parsedData = JSON.parse(extractedData);
         const newResume = await Resume.create({userId, title, ...parsedData})
 
         res.json({resumeId: newResume._id})
