@@ -143,9 +143,8 @@ export const uploadResume = async (req, res) => {
         {
             role: "user",
             content: userPrompt,
-        },
-    ],
-    response_format: {type: 'json_object'}
+        }
+    ]
         })
 
         let extractedData = response.choices[0].message.content;
