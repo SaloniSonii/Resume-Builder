@@ -4,6 +4,57 @@ import { useSelector } from 'react-redux'
 import toast from 'react-hot-toast'
 import api from '../configs/api'
 
+const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    if (/^\d{4}-\d{2}$/.test(dateString)) return dateString;
+    try {
+        const d = new Date(dateString);
+        if (!isNaN(d.getTime())) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+    } catch (e) {}
+    return '';
+}
+
+const MonthYearPicker = ({ value, onChange, disabled }) => {
+    const formatted = formatDateForInput(value);
+    const [year, month] = formatted ? formatted.split("-") : ["", ""];
+    
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({length: 60}, (_, i) => currentYear + 10 - i);
+    const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    return (
+        <div className={`flex gap-2 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+            <select 
+                value={month || ""} 
+                onChange={e => {
+                    const newMonth = e.target.value;
+                    onChange(year && newMonth ? `${year}-${newMonth}` : (newMonth ? `${currentYear}-${newMonth}` : ""));
+                }}
+                className="px-2 py-2 text-sm rounded-lg border bg-white flex-1"
+                disabled={disabled}
+            >
+                <option value="">Month</option>
+                {months.map((m, i) => <option key={m} value={m}>{monthNames[i]}</option>)}
+            </select>
+            <select 
+                value={year || ""} 
+                onChange={e => {
+                    const newYear = e.target.value;
+                    onChange(newYear && month ? `${newYear}-${month}` : (newYear ? `${newYear}-01` : ""));
+                }}
+                className="px-2 py-2 text-sm rounded-lg border bg-white flex-1"
+                disabled={disabled}
+            >
+                <option value="">Year</option>
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+        </div>
+    );
+};
+
 const ExperienceForm = ({ data = [], onChange = () => {} }) => {
     const { token } = useSelector((state) => state.auth)
     const [generatingIndex, setGeneratingIndex] = useState(-1)
@@ -150,20 +201,22 @@ const ExperienceForm = ({ data = [], onChange = () => {} }) => {
                                     className="px-3 py-2 text-sm rounded-lg border"
                                 />
 
-                                <input
-                                    value={experience.start_date || ""}
-                                    onChange={(e) => updateExperience(index, 'start_date', e.target.value)}
-                                    type="month"
-                                    className="px-3 py-2 text-sm rounded-lg border"
-                                />
+                                <div className="space-y-1">
+                                    <label className="text-xs text-gray-500">Start Date</label>
+                                    <MonthYearPicker
+                                        value={experience.start_date}
+                                        onChange={(val) => updateExperience(index, 'start_date', val)}
+                                    />
+                                </div>
 
-                                <input
-                                    value={experience.end_date || ""}
-                                    onChange={(e) => updateExperience(index, 'end_date', e.target.value)}
-                                    type="month"
-                                    disabled={experience.is_current}
-                                    className="px-3 py-2 text-sm rounded-lg border disabled:bg-gray-100"
-                                />
+                                <div className="space-y-1">
+                                    <label className="text-xs text-gray-500">End Date</label>
+                                    <MonthYearPicker
+                                        value={experience.end_date}
+                                        onChange={(val) => updateExperience(index, 'end_date', val)}
+                                        disabled={experience.is_current}
+                                    />
+                                </div>
                             </div>
 
                             <label className="flex items-center gap-2">

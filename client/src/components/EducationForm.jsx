@@ -1,7 +1,58 @@
 import { GraduationCap, Plus, Trash2 } from 'lucide-react';
 import React from 'react'
 
-const EducationForm = ({ data, onChange }) => {
+const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    if (/^\d{4}-\d{2}$/.test(dateString)) return dateString;
+    try {
+        const d = new Date(dateString);
+        if (!isNaN(d.getTime())) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+    } catch (e) {}
+    return '';
+}
+
+const MonthYearPicker = ({ value, onChange, disabled }) => {
+    const formatted = formatDateForInput(value);
+    const [year, month] = formatted ? formatted.split("-") : ["", ""];
+    
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({length: 60}, (_, i) => currentYear + 10 - i);
+    const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    return (
+        <div className={`flex gap-2 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+            <select 
+                value={month || ""} 
+                onChange={e => {
+                    const newMonth = e.target.value;
+                    onChange(year && newMonth ? `${year}-${newMonth}` : (newMonth ? `${currentYear}-${newMonth}` : ""));
+                }}
+                className="px-2 py-2 text-sm rounded-lg border bg-white flex-1"
+                disabled={disabled}
+            >
+                <option value="">Month</option>
+                {months.map((m, i) => <option key={m} value={m}>{monthNames[i]}</option>)}
+            </select>
+            <select 
+                value={year || ""} 
+                onChange={e => {
+                    const newYear = e.target.value;
+                    onChange(newYear && month ? `${newYear}-${month}` : (newYear ? `${newYear}-01` : ""));
+                }}
+                className="px-2 py-2 text-sm rounded-lg border bg-white flex-1"
+                disabled={disabled}
+            >
+                <option value="">Year</option>
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+        </div>
+    );
+};
+
+const EducationForm = ({ data=[], onChange }) => {
     const addEducation = () => {
         const newEducation = {
             institution: "",
@@ -79,13 +130,13 @@ const EducationForm = ({ data, onChange }) => {
                                     type="text"
                                     className=" px-3 py-2 text-sm " placeholder="Field of Study"
                                 />
-                                <input
-
-                                    value={education.graduation_date || ""}
-                                    onChange={(e) => updateEducation(index, "graduation_date", e.target.value)}
-                                    type="month" 
-                                    className=" px-3 py-2 text-sm "
-                                />
+                                <div className="space-y-1">
+                                    <label className="text-xs text-gray-500">Graduation Date</label>
+                                    <MonthYearPicker
+                                        value={education.graduation_date}
+                                        onChange={(val) => updateEducation(index, "graduation_date", val)}
+                                    />
+                                </div>
                             </div>
 
                                    <input
