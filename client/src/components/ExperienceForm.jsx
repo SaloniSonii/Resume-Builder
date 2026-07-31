@@ -68,8 +68,15 @@ const ExperienceForm = ({ data = [], onChange = () => {} }) => {
         //     setGeneratingIndex(-1)
         // }
         setGeneratingIndex(index)
-        const experience = data[index]
-        const prompt = `enhance this job description ${experience.description} for the position of ${experience.position} at ${experience.company}.`
+        const experience = experiences[index]
+
+        if (!experience.position || !experience.company) {
+            toast.error("Please enter Company and Position first to use AI Enhance")
+            setGeneratingIndex(-1)
+            return
+        }
+
+        const prompt = `enhance this job description ${experience.description || ''} for the position of ${experience.position} at ${experience.company}.`
 
         try{
             const {data} = await api.post('api/ai/enhance-job-desc', {userContent:prompt},{headers:{Authorization: token}})
@@ -179,8 +186,8 @@ const ExperienceForm = ({ data = [], onChange = () => {} }) => {
                                     //     className='flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50'
                                     // >
 
-                                      disabled={generatingIndex === index || !experience.position || !experience.company}
-                                        className='flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50'
+                                        disabled={generatingIndex === index}
+                                        className='flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors disabled:opacity-50'
                                     >
 
                                         {generatingIndex === index ? (
